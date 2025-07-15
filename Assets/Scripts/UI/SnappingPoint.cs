@@ -2,50 +2,50 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Events;
 using Utilities.Extensions;
 
 namespace Game.UI
 {
 	[RequireComponent(typeof(RectTransform))]
-	public class SnappingPoint : MonoBehaviour, IEquatable<SnappingPoint>
+	public class SnappingPoint : MonoBehaviour
 	{
 		private static readonly List<SnappingPoint> _snappingPoints = new();
 
-		public RectTransform RectTransform => transform as RectTransform;
-		public Vector2 TotalAnchoredPosition => RectTransform.anchoredPosition + (transform.parent as RectTransform).anchoredPosition;
+		[SerializeField] private UnityEvent _onEnterSnapRange;
+		[SerializeField] private UnityEvent _onExitSnapRange;
+
+		public UnityEvent OnExitSnapRange => _onExitSnapRange;
+
+		public UnityEvent OnEnterSnapRange => _onEnterSnapRange;
 
 		private void OnEnable()
 		{
 			_snappingPoints.Add(this);
 		}
 
-		public bool CanSnap(float snappingDistance, out SnappingPoint position, IReadOnlyList<SnappingPoint> exclusions)
+		public bool CanSnap(
+			float snappingDistance,
+			IReadOnlyList<SnappingPoint> exclusions,
+			[System.Diagnostics.CodeAnalysis.MaybeNullWhen(false)] out SnappingPoint position)
 		{
-			var nearest = _snappingPoints
-				.Where(
-					p => {
-						bool result = p != null && p.enabled;
-						result &= !exclusions.Contains(p);
-						Debug.Log(result);
-						var dist = Vector2.Distance(p.transform.position, this.transform.position);
-						Debug.Log($"{dist} < {snappingDistance} is {dist < snappingDistance}");
-						result &= dist < snappingDistance;
-						return result;
-					})
-				.OrderBy(
-					p => Vector2.Distance(p.transform.position, this.transform.position))
+			position = _snappingPoints
+				.Where(p => {
+					bool result = p != null && p.enabled;
+					result &= !exclusions.Contains(p);
+					result &= Vector2.Distance(p.transform.position, this.transform.position) < snappingDistance;
+					return result;
+				})
+				.OrderBy(p => Vector2.Distance(p.transform.position, this.transform.position))
 				.FirstOrDefault();
 
-			if (nearest != null)
+			if (position != null)
 			{
-				Debug.Assert(nearest != this);
-				position = nearest;
+				Debug.Assert(position != this);
 				return true;
 			}
 			else
 			{
-				Debug.Log("No point was found within range.");
-				position = null;
 				return false;
 			}
 		}
@@ -53,11 +53,6 @@ namespace Game.UI
 		private void OnDisable()
 		{
 			_snappingPoints.Remove(this);
-		}
-
-		public bool Equals(SnappingPoint other)
-		{
-			return this.GetInstanceID() == other.GetInstanceID();
 		}
 
 		public Vector2 GetScreenPosition()
