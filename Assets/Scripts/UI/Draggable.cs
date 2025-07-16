@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Pool;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
@@ -20,7 +21,7 @@ namespace Game.UI
 		[Header("Snapping")]
 		[SerializeField] private bool _enableSnapping = true;
 		[SerializeField] private float _snappingDistance = 1;
-		[SerializeField] private SnappingPoint[] _snappingPoints;
+		[SerializeField] private SnappingPoint[] _snappingPoints = Array.Empty<SnappingPoint>();
 		[SerializeField] private UnityEvent<SnappingPoint> _onSnapTo;
 		private SnappingPoint _source, _target;
 
@@ -88,9 +89,8 @@ namespace Game.UI
 			{
 				try
 				{
-					Constrain(DragTransform, within: Container);
+					DragTransform.Constrain(within: Container);
 				}
-					// DragTransform and Container are never null here, so this is the only exception that must be handled.
 				catch (InvalidOperationException ex)
 				{
 					Debug.LogWarning(ex.Message);
@@ -159,67 +159,6 @@ namespace Game.UI
 			this.ClearSourceAndTarget();
 		}
 		#endregion
-
-		/// <summary>
-		/// Constrains the <paramref name="target"/> <see cref="RectTransform"/>'s bounds to be <paramref name="within"/> another.
-		/// </summary>
-		/// <remarks>
-		/// Throws an <see cref="InvalidOperationException"/> if <paramref name="within"/> has dimensions smaller than the <paramref name="target"/>.
-		/// </remarks>
-		/// <param name="target"></param>
-		/// <param name="within"></param>
-		/// <exception cref="ArgumentNullException"></exception>
-		/// <exception cref="InvalidOperationException"></exception>
-		public static void Constrain(RectTransform target, RectTransform within)
-		{
-			if (target == null)
-				throw new ArgumentNullException(nameof(target));
-			if (within == null)
-				throw new ArgumentNullException(nameof(within));
-
-			var myCorners = new Vector3[4];
-			var limitCorners = new Vector3[4];
-
-			target.GetWorldCorners(fourCornersArray: myCorners);
-			within.GetWorldCorners(fourCornersArray: limitCorners);
-
-			const int topLeft = 1, bottomRight = 3;
-
-			float myTop = myCorners[topLeft].y,
-				myLeft = myCorners[topLeft].x,
-				myBottom = myCorners[bottomRight].y,
-				myRight = myCorners[bottomRight].x;
-
-			float topLimit = limitCorners[topLeft].y,
-				leftLimit = limitCorners[topLeft].x,
-				bottomLimit = limitCorners[bottomRight].y,
-				rightLimit = limitCorners[bottomRight].x;
-
-			// Container is smaller than target
-			if (leftLimit > myLeft && rightLimit < myRight || bottomLimit > myBottom && topLimit < myTop)
-			{
-				string message = $"{target} is being constrained to an area that is smaller than it's own dimensions.";
-				throw new InvalidOperationException(message);
-			}
-
-			var translation = Vector2.zero;
-
-			if (myLeft < leftLimit)
-				translation.x = leftLimit - myLeft;
-			else if (myRight > rightLimit)
-				translation.x = rightLimit - myRight;
-			else
-				translation.x = 0;
-
-			if (myBottom < bottomLimit)
-				translation.y = bottomLimit - myBottom;
-			else if (myTop > topLimit)
-				translation.y = topLimit - myTop;
-			else
-				translation.y = 0;
-
-			target.position += (Vector3)translation;
-		}
 
 		public void OnDrawGizmosSelected()
 		{

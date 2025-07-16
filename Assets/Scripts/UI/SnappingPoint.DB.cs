@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using UnityEngine.Pool;
 
 namespace Game.UI
@@ -17,6 +18,9 @@ namespace Game.UI
 
 			public void Add(SnappingPoint point)
 			{
+				if (point._pointType is Type.Disable)
+					return;
+
 				foreach (var type in point._pointType.GetFlags())
 				{
 					GetOrCreateList(type).Add(point);
@@ -37,18 +41,33 @@ namespace Game.UI
 
 			public IEnumerable<SnappingPoint> GetSnappingPoints(Type flags, IReadOnlyList<SnappingPoint> exclusions = null)
 			{
+				bool validatePoint(SnappingPoint point) => point != null && point.enabled && (exclusions is null || !exclusions.Contains(point));
+
+				if (flags is Type.Disable)
+					yield break;
+
+				if (flags is Type.Any)
+				{
+					for (int i = 0; i < _db[Type.Any].Count; i++)
+					{
+						yield return _db[Type.Any][i];
+					}
+					yield break;
+				}
+
 				foreach (var flag in flags.GetFlags())
 				{
+					if (flag is Type.Any or Type.Disable)
+						continue;
+
 					if (!_db.TryGetValue(flag, out var points))
 						continue;
 
 					for (int i = 0; i < points.Count; i++)
 					{
 						SnappingPoint point = points[i];
-						if (point != null && point.enabled && (exclusions is null || !exclusions.Contains(point)))
-						{
+						if (validatePoint(point))
 							yield return point;
-						}
 					}
 				}
 			}
@@ -58,6 +77,7 @@ namespace Game.UI
 				if (!_db.TryGetValue(type, out var list))
 				{
 					list = ListPool<SnappingPoint>.Get();
+					_db.Add(type, list);
 				}
 				return list;
 			}
