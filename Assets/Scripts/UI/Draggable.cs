@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
@@ -24,7 +25,7 @@ namespace Game.UI
 		private SnappingPoint _source, _target;
 
 		/// <summary>
-		/// The transform to drag.
+		/// The transform to drag. If no value was assigned in the inspector or this property, this returns the <see cref="RectTransform"/> on this <see cref="MonoBehaviour"/>.
 		/// </summary>
 		public RectTransform DragTransform {
 			get {
@@ -33,13 +34,20 @@ namespace Game.UI
 				else
 					return _transform;
 			}
+			set => _transform = value;
 		}
 
 		public bool ConstrainBounds { get => _constrainBounds; set => _constrainBounds = value; }
 		public RectTransform Container { get => _container == null ? DragTransform.parent as RectTransform : _container; set => _container = value; }
 
 		public bool EnableSnapping { get => _enableSnapping; set => _enableSnapping = value; }
+		/// <summary>
+		/// The maximum distance in world space units between valid snapping points.
+		/// </summary>
 		public float SnappingDistance { get => _snappingDistance; set => _snappingDistance = value; }
+		/// <summary>
+		/// List of snapping points on this object.
+		/// </summary>
 		public System.Collections.Generic.IReadOnlyList<SnappingPoint> SnappingPoints => _snappingPoints;
 
 		public event UnityAction<SnappingPoint> OnSnapTo {
@@ -58,7 +66,7 @@ namespace Game.UI
 
 			if (_enableSnapping)
 			{
-				if (CanSnapToAny(out var source, out var target))
+				if (TryGetSnappingPoint(out var source, out var target))
 				{
 					SetAndSourceTarget(source, target);
 				}
@@ -73,17 +81,25 @@ namespace Game.UI
 		{
 			if (_enableSnapping)
 			{
-				Snap(_source, _target);
+				Snap(from: _source, to: _target);
 			}
 
 			if (_constrainBounds)
 			{
-				ConstrainTransformBounds(DragTransform, Container);
+				try
+				{
+					Constrain(DragTransform, within: Container);
+				}
+					// DragTransform and Container are never null here, so this is the only exception that must be handled.
+				catch (InvalidOperationException ex)
+				{
+					Debug.LogWarning(ex.Message);
+				}
 			}
 		}
 
 		#region Snapping Methods
-		private bool CanSnapToAny(out SnappingPoint source, out SnappingPoint target)
+		private bool TryGetSnappingPoint(out SnappingPoint source, out SnappingPoint target)
 		{
 			bool canSnap;
 			target = null;
@@ -144,18 +160,28 @@ namespace Game.UI
 		}
 		#endregion
 
-		public static void ConstrainTransformBounds(RectTransform target, RectTransform container)
+		/// <summary>
+		/// Constrains the <paramref name="target"/> <see cref="RectTransform"/>'s bounds to be <paramref name="within"/> another.
+		/// </summary>
+		/// <remarks>
+		/// Throws an <see cref="InvalidOperationException"/> if <paramref name="within"/> has dimensions smaller than the <paramref name="target"/>.
+		/// </remarks>
+		/// <param name="target"></param>
+		/// <param name="within"></param>
+		/// <exception cref="ArgumentNullException"></exception>
+		/// <exception cref="InvalidOperationException"></exception>
+		public static void Constrain(RectTransform target, RectTransform within)
 		{
 			if (target == null)
-				throw new System.ArgumentNullException(nameof(target));
-			if (container == null)
-				throw new System.ArgumentNullException(nameof(container));
+				throw new ArgumentNullException(nameof(target));
+			if (within == null)
+				throw new ArgumentNullException(nameof(within));
 
 			var myCorners = new Vector3[4];
 			var limitCorners = new Vector3[4];
 
 			target.GetWorldCorners(fourCornersArray: myCorners);
-			container.GetWorldCorners(fourCornersArray: limitCorners);
+			within.GetWorldCorners(fourCornersArray: limitCorners);
 
 			const int topLeft = 1, bottomRight = 3;
 
@@ -169,11 +195,11 @@ namespace Game.UI
 				bottomLimit = limitCorners[bottomRight].y,
 				rightLimit = limitCorners[bottomRight].x;
 
-			// Constraint is smaller than me
+			// Container is smaller than target
 			if (leftLimit > myLeft && rightLimit < myRight || bottomLimit > myBottom && topLimit < myTop)
 			{
 				string message = $"{target} is being constrained to an area that is smaller than it's own dimensions.";
-				throw new System.InvalidOperationException(message);
+				throw new InvalidOperationException(message);
 			}
 
 			var translation = Vector2.zero;

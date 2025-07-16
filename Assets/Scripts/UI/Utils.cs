@@ -1,19 +1,20 @@
-using UnityEngine;
-using Utilities.Extensions;
+using System;
+using System.Collections.Generic;
 
 namespace Game.UI
 {
 	public static class Utils
 	{
-		public static Vector2 GetScreenPosition(this RectTransform rectTransform)
+		public static IEnumerable<TEnum> GetFlags<TEnum>(this TEnum flags) where TEnum : struct, Enum
 		{
-			Vector2 result = Vector2.zero;
-			var hierarchy = rectTransform.Get().Components<RectTransform>().InParent(includeInactive: true);
-			for (int i = 0; i < hierarchy.Length; i++)
+			var values = Enum.GetValues(typeof(TEnum));
+			foreach (TEnum value in values)
 			{
-				result += hierarchy[i].anchoredPosition;
+				if (flags.HasFlag(value))
+				{
+					yield return value;
+				}
 			}
-			return result;
 		}
 	}
 }
