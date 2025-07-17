@@ -1,23 +1,23 @@
+using System;
 using System.Collections.Generic;
 using Game.CodeBlocks;
 using UnityEngine;
 
 namespace Game.UI
 {
-	public interface IBlock
+	public interface IBlock : IEquatable<IBlock>
 	{
-		IBlock this[int childIndex] => GetChild(childIndex);
+		MonoBehaviour Behaviour { get; }
 
-		void SetParent(IBlock parent);
+		void SetParent(IBlock newParent);
 
 		void AddChild(IBlock child);
-		IBlock GetChild(int index);
 		void RemoveChild(IBlock child);
-	}
 
-	public interface ICodeBlock
-	{
-		CodeBlocks.ICodeBlock GetBlock();
+		ICodeBlock CreateBlock();
+		IBlock GetNext();
+
+		bool IEquatable<IBlock>.Equals(IBlock other) => this is not null && other is not null && Behaviour == other.Behaviour;
 	}
 
 	public interface IFunctionBlock
@@ -30,7 +30,7 @@ namespace Game.UI
 
 	public interface IParameterBlock
 	{
-		CodeBlocks.Value GetValue();
+		Value GetValue();
 	}
 
 	public interface IVariableBlock : IParameterBlock

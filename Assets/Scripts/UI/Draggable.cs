@@ -1,6 +1,5 @@
 using System;
 using UnityEngine;
-using UnityEngine.Pool;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
@@ -22,7 +21,8 @@ namespace Game.UI
 		[SerializeField] private bool _enableSnapping = true;
 		[SerializeField] private float _snappingDistance = 1;
 		[SerializeField] private SnappingPoint[] _snappingPoints = Array.Empty<SnappingPoint>();
-		[SerializeField] private UnityEvent<SnappingPoint> _onSnapTo;
+		[SerializeField] private UnityEvent _onBeginDrag;
+		[SerializeField] private UnityEvent<SnappingPoint, SnappingPoint> _onSnapTo;
 		private SnappingPoint _source, _target;
 
 		/// <summary>
@@ -51,7 +51,12 @@ namespace Game.UI
 		/// </summary>
 		public System.Collections.Generic.IReadOnlyList<SnappingPoint> SnappingPoints => _snappingPoints;
 
-		public event UnityAction<SnappingPoint> OnSnapTo {
+		public event UnityAction OnBeginDrag {
+			add => _onBeginDrag.AddListener(value);
+			remove => _onBeginDrag.RemoveListener(value);
+		}
+
+		public event UnityAction<SnappingPoint, SnappingPoint> OnSnapTo {
 			add => _onSnapTo.AddListener(value);
 			remove => _onSnapTo.RemoveListener(value);
 		}
@@ -59,6 +64,7 @@ namespace Game.UI
 		void IBeginDragHandler.OnBeginDrag(PointerEventData eventData)
 		{
 			_dragOffset = (Vector2)DragTransform.position - eventData.position;
+			_onBeginDrag.Invoke();
 		}
 
 		void IDragHandler.OnDrag(PointerEventData eventData)
@@ -155,10 +161,15 @@ namespace Game.UI
 			Debug.Log($"I want to snap {from} to {to}");
 
 			DragTransform.position += to.transform.position - from.transform.position;
-			_onSnapTo.Invoke(to);
+			_onSnapTo.Invoke(from, to);
 			this.ClearSourceAndTarget();
 		}
 		#endregion
+
+		public void OnDestroy()
+		{
+			_onSnapTo.RemoveAllListeners();
+		}
 
 		public void OnDrawGizmosSelected()
 		{
