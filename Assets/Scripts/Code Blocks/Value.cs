@@ -34,6 +34,11 @@ namespace Game.CodeBlocks
 		public static int ToInt(bool value) => value ? 1 : 0;
 		public static bool ToBool(int value) => value != 0;
 
+		public static implicit operator Value(string value) => new(value);
+		public static implicit operator Value(int value) => new(value);
+		public static implicit operator Value(float value) => new(value);
+		public static implicit operator Value(bool value) => new(value);
+
 		public static explicit operator string(Value value) => value.GetStringValue();
 		public static explicit operator int(Value value) => value.GetIntValue();
 		public static explicit operator float(Value value) => value.GetFloatValue();

@@ -1,40 +1,55 @@
 using System;
 using System.Collections.Generic;
-using Game.CodeBlocks;
 using UnityEngine;
 
 namespace Game.UI
 {
-	public interface IBlock : IEquatable<IBlock>
-	{
-		MonoBehaviour Behaviour { get; }
-
-		void SetParent(IBlock newParent);
-
-		void AddChild(IBlock child);
-		void RemoveChild(IBlock child);
-
-		ICodeBlock CreateBlock();
-		IBlock GetNext();
-
-		bool IEquatable<IBlock>.Equals(IBlock other) => this is not null && other is not null && Behaviour == other.Behaviour;
-	}
-
-	public interface IFunctionBlock
-	{
-		IParameterBlock this[int index] { get => GetParameter(index); set => SetParameter(index, value); }
-
-		IParameterBlock GetParameter(int index);
-		void SetParameter(int parameterIndex, IParameterBlock variable);
-	}
-
-	public interface IParameterBlock
-	{
-		Value GetValue();
-	}
-
-	public interface IVariableBlock : IParameterBlock
+	public interface IUIBlock
 	{
 		string Name { get; }
+
+		void Duplicate();
+		void Delete();
+	}
+
+	public interface IInstruction : IUIBlock, IEquatable<IInstruction>
+	{
+		Component Component { get; }
+
+		CodeBlocks.ICodeBlock CreateBlock();
+
+		IInstruction GetParent();
+		void SetParent(IInstruction newParent);
+
+		void AddChild(IInstruction child);
+		void RemoveChild(IInstruction child);
+
+		bool IEquatable<IInstruction>.Equals(IInstruction other)
+		{
+			return this.Component == other.Component;
+		}
+	}
+
+	public interface IMethod : IUIBlock, IEnumerable<IParameter>
+	{
+		int ParameterCount { get; }
+
+		IParameter this[int index] { get => this.GetParameter(index); set => this.SetParameter(index, value); }
+
+		IParameter GetParameter(int index);
+		void SetParameter(int index, IParameter value);
+
+		IEnumerator<IParameter> IEnumerable<IParameter>.GetEnumerator()
+		{
+			for (int i = 0; i < ParameterCount; i++)
+			{
+				yield return this.GetParameter(i);
+			}
+		}
+	}
+
+	public interface IParameter : IUIBlock
+	{
+		CodeBlocks.Value GetValue();
 	}
 }
