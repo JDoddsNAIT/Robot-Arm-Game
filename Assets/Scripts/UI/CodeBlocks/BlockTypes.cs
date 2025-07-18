@@ -26,7 +26,7 @@ namespace Game.UI
 
 		bool IEquatable<IInstruction>.Equals(IInstruction other)
 		{
-			return this.Component == other.Component;
+			return this?.Component == other?.Component;
 		}
 	}
 
