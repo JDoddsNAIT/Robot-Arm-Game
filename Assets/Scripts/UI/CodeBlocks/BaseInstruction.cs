@@ -2,13 +2,18 @@ using System;
 using System.Collections.Generic;
 using Game.CodeBlocks;
 using UnityEngine;
+using Utilities.Extensions;
 
 namespace Game.UI
 {
 	[DisallowMultipleComponent]
-	public abstract class BaseInstruction : MonoBehaviour, IInstruction
+	public abstract class BaseInstruction : MonoBehaviour, IInstruction, IDraggableListener
 	{
+		protected SnappingPoint _topConnection;
+
 		[SerializeField] protected Transform _defaultParent;
+		[SerializeField] protected Draggable _draggable;
+		[SerializeField] protected SnappingPoint _topPoint;
 
 		protected bool _preventRecursion = false;
 		protected IInstruction _parent;
@@ -32,7 +37,7 @@ namespace Game.UI
 			if (_preventRecursion)
 				return;
 
-			if (_parent.Equals(newParent))
+			if (_parent == newParent)
 				return;
 
 			_preventRecursion = true;
@@ -93,5 +98,60 @@ namespace Game.UI
 			_preventRecursion = false;
 		}
 		#endregion
+
+		public void Start()
+		{
+			if (_draggable != null)
+			{
+				_draggable.AddCallbacks(this);
+			}
+
+			if (_topPoint != null)
+			{
+				_topPoint.OnSnapTo += this.TopPoint_OnSnapTo;
+			}
+		}
+
+		private void TopPoint_OnSnapTo(SnappingPoint other)
+		{
+			Debug.Assert(other != null);
+			if (other.Get().Component<IInstruction>().InParent(out var component))
+			{
+				Debug.Assert(component != null);
+				this.SetParent(component);
+				_topPoint.enabled = false;
+				_topConnection = other;
+				other.enabled = false;
+			}
+		}
+
+		public void OnDestroy()
+		{
+			if (_draggable != null)
+			{
+				_draggable.RemoveCallbacks(this);
+			}
+
+			if (_topPoint != null)
+			{
+				_topPoint.OnSnapTo -= this.TopPoint_OnSnapTo;
+			}
+		}
+
+		public virtual void OnDragStart()
+		{
+			SetParent(null);
+			if (_topConnection != null)
+			{
+				_topConnection.enabled = true;
+				_topConnection = null;
+			}
+
+			_topPoint.enabled = true;
+		}
+
+		public virtual void WhileDragging(Vector2 delta) { /* no-op */ }
+
+		public virtual void OnDragEnd() { /* no-op */ }
 	}
 }
