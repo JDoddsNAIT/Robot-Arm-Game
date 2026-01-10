@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
-using Utilities.Extensions;
 
 namespace Game.UI
 {
@@ -90,7 +89,7 @@ namespace Game.UI
 			Debug.Log(gameObject.name);
 
 			var snapDisplacement = _target.transform.position - transform.position;
-			_draggable.transform.position += snapDisplacement.With(z: 0);
+			_draggable.transform.position += snapDisplacement with { z = 0 };
 			_onSnapTo.Invoke(_target);
 			_target._onSnapTo.Invoke(this);
 		}
