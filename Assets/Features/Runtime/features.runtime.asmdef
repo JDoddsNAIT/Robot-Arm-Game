@@ -1,0 +1,16 @@
+{
+    "name": "features.runtime",
+    "rootNamespace": "Features",
+    "references": [
+        "GUID:7251b1cd9c16c2c40940ea20d2627e75"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
