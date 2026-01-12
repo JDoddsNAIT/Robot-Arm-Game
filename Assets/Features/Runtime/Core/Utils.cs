@@ -101,5 +101,11 @@ namespace Features
 			=> list.Capacity = Mathf.Max(list.Capacity, capacity);
 
 		public static bool IsAssignableTo(this Type t, Type type) => type.IsAssignableFrom(t);
+
+		public static void AddRange<T>(this ICollection<T> collection, IEnumerable<T> items)
+		{
+			foreach (var item in items)
+				collection.Add(item);
+		}
 	}
 }

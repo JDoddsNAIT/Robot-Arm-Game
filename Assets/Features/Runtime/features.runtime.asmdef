@@ -2,7 +2,8 @@
     "name": "features.runtime",
     "rootNamespace": "Features",
     "references": [
-        "GUID:7251b1cd9c16c2c40940ea20d2627e75"
+        "GUID:7251b1cd9c16c2c40940ea20d2627e75",
+        "GUID:caca889fed6088d40b22c2d7e2909c31"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
