@@ -4,11 +4,10 @@ namespace Features.LogicGates
 {
 	public class LogicSimulator : MonoBehaviour
 	{
-		private bool _isRunning;
+		private bool _running;
 		[SerializeField] private List<BaseLogicGate> _gates = new();
 
 		public void AddToSimulation(BaseLogicGate gate) => _gates.Add(gate);
-
 		public void RemoveFromSimulation(BaseLogicGate gate) => _gates.Remove(gate);
 
 		public void StartSimulation()
@@ -22,21 +21,14 @@ namespace Features.LogicGates
 
 		public void Update()
 		{
-			if (!_isRunning)
+			if (!_running || !enabled)
 				return;
 
-			for (int i = 0; i < _gates.Count; i++)
-			{
-				_gates[i].OnSimulationEarlyUpdate();
-			}
-
-			for (int i = 0; i < _gates.Count; i++)
-			{
-				_gates[i].OnSimulationUpdate();
-			}
+			foreach (var gate in _gates) gate.SetOutputValues();
+			foreach (var gate in _gates) gate.UpdateOutputValues();
 		}
 
-		public void ResumeSimulation() => _isRunning = true;
-		public void StopSimulation() => _isRunning = false;
+		public void ResumeSimulation() => _running = true;
+		public void StopSimulation() => _running = false;
 	}
 }
