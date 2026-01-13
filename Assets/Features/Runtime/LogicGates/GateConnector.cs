@@ -4,8 +4,6 @@ namespace Features.LogicGates
 	public abstract partial class GateConnector : MonoBehaviour,
 		IEquatable<GateConnector>
 	{
-		private static int _nextId = 0;
-
 		protected int _id = _nextId++;
 		protected Simulation _simulation;
 
@@ -16,6 +14,8 @@ namespace Features.LogicGates
 		{
 			_simulation = transform.parent.GetComponentInParent<Simulation>();
 		}
+
+		public virtual void OnClick() => Select(this);
 
 		public void Connect(GateConnector other)
 		{
@@ -35,6 +35,23 @@ namespace Features.LogicGates
 		public override int GetHashCode() => _id.GetHashCode();
 
 		public static Connection operator +(GateConnector a, GateConnector b) => new(a, b);
+
+		private static int _nextId = 0;
+		private static GateConnector _selected;
+
+		public static void Select(GateConnector obj)
+		{
+			if (_selected == null)
+			{
+				_selected = obj;
+			}
+			else
+			{
+				if (obj != null)
+					_selected.Connect(obj);
+				_selected = null;
+			}
+		}
 	}
 
 	[Serializable]

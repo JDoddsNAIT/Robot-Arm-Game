@@ -9,8 +9,11 @@ namespace Features.SceneManagement
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
 		private static async void InitializeBootstrapper()
 		{
+			// TODO: Remove
+			return;
+
 			Debug.Log("Starting bootstrapper...");
-			await SceneManager.LoadSceneAsync(SCENE_NAME, LoadSceneMode.Single);
+			await SceneManager.LoadSceneAsync(SCENE_NAME, LoadSceneMode.Additive);
 		}
 
 		public static Bootstrapper Main { get; private set; }

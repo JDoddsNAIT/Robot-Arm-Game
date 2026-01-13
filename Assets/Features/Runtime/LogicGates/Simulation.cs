@@ -34,12 +34,23 @@ namespace Features.LogicGates
 		[SerializeField] private List<Connection> _connections = new();
 		[SerializeField] private List<LogicGate> _gates = new();
 
-		public void AddToSimulation(Connection connection) => _connections.Add(connection);
+		public void AddToSimulation(Connection connection)
+		{
+			if (!_connections.Contains(connection))
+				_connections.Add(connection);
+		}
+
 		public void RemoveFromSimulation(Connection connection) => _connections.Remove(connection);
 
-		public void AddToSimulation(LogicGate gate) => _gates.Add(gate);
+		public void AddToSimulation(LogicGate gate)
+		{
+			if (!_gates.Contains(gate))
+				_gates.Add(gate);
+		}
+
 		public void RemoveFromSimulation(LogicGate gate) => _gates.Remove(gate);
 
+		[ContextMenu(nameof(StartSimulation))]
 		public void StartSimulation()
 		{
 			_networks = GetNetworks(_connections).ToArray();
@@ -69,6 +80,9 @@ namespace Features.LogicGates
 			}
 		}
 
+		[ContextMenu(nameof(PauseSimulation))]
+		private void PauseSimulation() => PauseSimulation(null);
+
 		public void PauseSimulation(bool? state = null)
 		{
 			if (!_started) return;
@@ -79,12 +93,13 @@ namespace Features.LogicGates
 			};
 		}
 
+		[ContextMenu(nameof(StopSimulation))]
 		public void StopSimulation()
 		{
 			_started = false;
 			_running = false;
 		}
-		
+
 		private static IEnumerable<Network> GetNetworks(IEnumerable<Connection> connections)
 		{
 			var explored = new HashSet<GateConnector>();

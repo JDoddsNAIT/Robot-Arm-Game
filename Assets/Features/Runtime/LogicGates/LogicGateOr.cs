@@ -1,6 +1,6 @@
 namespace Features.LogicGates
 {
-	public class LogicGateAnd : LogicGate
+	public class LogicGateOr : LogicGate
 	{
 		[SerializeField] private GateInput[] _inputs;
 		[SerializeField] private GateOutput[] _outputs;
@@ -10,16 +10,12 @@ namespace Features.LogicGates
 
 		protected override void ProcessInputs(float[] input, float[] output)
 		{
-			float value = 1;
+			float value = 0;
 			for (int i = 0; i < input.Length; i++)
 			{
-				value *= input[i];
+				value += input[i];
 			}
-
-			for (int i = 0; i < output.Length; i++)
-			{
-				output[i] = value;
-			}
+			output[0] = value;
 		}
 	}
 }

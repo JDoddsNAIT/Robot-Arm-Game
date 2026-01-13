@@ -8,7 +8,7 @@ namespace Features.LogicGates
 		private int _bufferIndex;
 		private int _bufferSize;
 
-		protected virtual int BufferSize => 0;
+		protected virtual int Buffer => 0;
 		protected abstract IReadOnlyList<GateInput> Inputs { get; }
 		protected abstract IReadOnlyList<GateOutput> Outputs { get; }
 
@@ -30,7 +30,7 @@ namespace Features.LogicGates
 			_inputValues = new float[Inputs.Count];
 			_outputValues = new float[Outputs.Count];
 			_bufferIndex = 0;
-			_bufferSize = BufferSize + 1;
+			_bufferSize = Buffer + 1;
 			_outputValueBuffer = new float[_bufferSize, Outputs.Count];
 		}
 
