@@ -4,6 +4,7 @@ namespace Features.LogicGates
 {
 	public class LogicSimulator : MonoBehaviour
 	{
+		private bool _started;
 		private bool _running;
 		[SerializeField] private List<BaseLogicGate> _gates = new();
 
@@ -16,7 +17,8 @@ namespace Features.LogicGates
 			{
 				_gates[i].OnSimulationStart();
 			}
-			ResumeSimulation();
+			_started = true;
+			PauseSimulation();
 		}
 
 		public void Update()
@@ -25,10 +27,23 @@ namespace Features.LogicGates
 				return;
 
 			foreach (var gate in _gates) gate.SetOutputValues();
-			foreach (var gate in _gates) gate.UpdateOutputValues();
+			foreach (var gate in _gates) gate.OnSimulationUpdate();
 		}
 
-		public void ResumeSimulation() => _running = true;
-		public void StopSimulation() => _running = false;
+		public void PauseSimulation(bool? state = null)
+		{
+			if (!_started) return;
+			_running = state switch {
+				null => !_running,
+				false => false,
+				true => true,
+			};
+		}
+
+		public void StopSimulation()
+		{
+			_started = false;
+			_running = false;
+		}
 	}
 }

@@ -11,7 +11,7 @@ namespace Features.LogicGates
 		protected override IReadOnlyList<Input> Inputs => _inputs;
 		protected override IReadOnlyList<Output> Outputs => _outputs;
 
-		protected override void GetOutputValues(float[] input, float[] output)
+		protected override void ProcessInputs(float[] input, float[] output)
 		{
 			float value = 1;
 			for (int i = 0; i < input.Length; i++)

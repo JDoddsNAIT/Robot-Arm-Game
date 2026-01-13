@@ -1,6 +1,7 @@
 namespace Features.LogicGates
 {
-	public abstract class Connectable : MonoBehaviour, IEquatable<Connectable>
+	public abstract partial class Connectable : MonoBehaviour,
+		IEquatable<Connectable>
 	{
 		protected static int _nextId = 0;
 
@@ -9,14 +10,47 @@ namespace Features.LogicGates
 		[SerializeField] private List<Connectable> _connections = new();
 
 		public int Id => _id;
+		public abstract float Value { get; set; }
 
 		public override int GetHashCode() => _id;
 		public bool Equals(Connectable other) => _id == other._id;
 
 		public bool ContainsConnection(Connectable other) => _connections.Contains(other);
 
+		public void OnClick()
+		{
+			Connector.Main.StartConnection(this);
+		}
+
 		protected virtual void OnConnectedTo(Connectable other) { }
 		protected virtual void OnDisconnectedFrom(Connectable other) { }
+
+		/// <summary>
+		/// Uses breadth-first search to find all objects connected to this object.
+		/// </summary>
+		/// <returns></returns>
+		public IEnumerable<Connectable> GetConnectedObjects()
+		{
+			HashSet<int> explored = new(capacity: 1);
+			Queue<Connectable> queue = new(capacity: 1);
+			queue.Enqueue(this);
+			while (queue.Count > 0)
+			{
+				var obj = queue.Dequeue();
+				if (explored.Contains(obj.Id))
+					continue;
+
+				yield return obj;
+				explored.Add(obj.Id);
+				foreach (var next in obj._connections)
+				{
+					if (next != null)
+						queue.Enqueue(next);
+				}
+			}
+		}
+
+		public static Connection operator +(Connectable lhs, Connectable rhs) => new(lhs, rhs);
 
 		public static void ToggleConnection(Connectable a, Connectable b)
 		{
@@ -58,33 +92,6 @@ namespace Features.LogicGates
 				b.OnDisconnectedFrom(a);
 			}
 		}
-
-		/// <summary>
-		/// Uses breadth-first search to find all objects this object is connected to.
-		/// </summary>
-		/// <returns></returns>
-		public IEnumerable<Connectable> GetConnectedObjects()
-		{
-			HashSet<int> explored = new(capacity: 1);
-			Queue<Connectable> queue = new(capacity: 1);
-			queue.Enqueue(this);
-			while (queue.Count > 0)
-			{
-				var obj = queue.Dequeue();
-				if (explored.Contains(obj.Id))
-					continue;
-
-				yield return obj;
-				explored.Add(obj.Id);
-				foreach (var next in obj._connections)
-				{
-					if (next != null)
-						queue.Enqueue(next);
-				}
-			}
-		}
-
-		public static Connection operator +(Connectable lhs, Connectable rhs) => new(lhs, rhs);
 	}
 
 	[Serializable]

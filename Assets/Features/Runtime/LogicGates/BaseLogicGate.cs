@@ -2,14 +2,13 @@ namespace Features.LogicGates
 {
 	public abstract class BaseLogicGate : MonoBehaviour
 	{
-		[SerializeField] protected int _buffer;
-
 		private float[] _inputValues;
 		private float[] _outputValues;
 		private float[,] _outputValueBuffer;
 		private int _bufferIndex;
 		private int _bufferSize;
 
+		protected virtual int BufferSize => 0;
 		protected abstract IReadOnlyList<Input> Inputs { get; }
 		protected abstract IReadOnlyList<Output> Outputs { get; }
 
@@ -28,7 +27,7 @@ namespace Features.LogicGates
 			_inputValues = new float[Inputs.Count];
 			_outputValues = new float[Outputs.Count];
 			_bufferIndex = 0;
-			_bufferSize = _buffer + 1;
+			_bufferSize = BufferSize + 1;
 			_outputValueBuffer = new float[_bufferSize, Outputs.Count];
 		}
 
@@ -40,14 +39,14 @@ namespace Features.LogicGates
 			}
 		}
 
-		public virtual void UpdateOutputValues()
+		public virtual void OnSimulationUpdate()
 		{
 			for (int i = 0; i < Inputs.Count; i++)
 			{
 				_inputValues[i] = Inputs[i].Value;
 			}
 
-			this.GetOutputValues(_inputValues, _outputValues);
+			this.ProcessInputs(_inputValues, _outputValues);
 
 			for (int i = 0; i < Outputs.Count; i++)
 			{
@@ -56,6 +55,6 @@ namespace Features.LogicGates
 			_bufferIndex = (_bufferIndex + 1) % _bufferSize;
 		}
 
-		protected abstract void GetOutputValues(float[] input, float[] output);
+		protected abstract void ProcessInputs(float[] input, float[] output);
 	}
 }
