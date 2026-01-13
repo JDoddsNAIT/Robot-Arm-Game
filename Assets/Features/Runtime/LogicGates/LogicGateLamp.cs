@@ -1,4 +1,3 @@
-using System.Linq;
 using UnityEngine.UI;
 
 namespace Features.LogicGates
@@ -12,11 +11,16 @@ namespace Features.LogicGates
 		protected override IReadOnlyList<GateInput> Inputs => _inputs;
 		protected override IReadOnlyList<GateOutput> Outputs => Array.Empty<GateOutput>();
 
-		protected override void ProcessInputs(float[] input, float[] output)
+		protected override void ProcessInputs(ReadOnlySpan<float> input, Span<float> output)
 		{
 			if (_targetGraphic != null)
 			{
-				_targetGraphic.color = input.Any(static x => !Mathf.Approximately(x, 0)) ? _onColor : _offColor;
+				bool on = false;
+				for (int i = 0; on is false && i < input.Length; i++)
+				{
+					on = input[i] != 0;
+				}
+				_targetGraphic.color = on ? _onColor : _offColor;
 			}
 		}
 	}

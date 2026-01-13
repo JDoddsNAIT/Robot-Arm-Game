@@ -2,10 +2,13 @@ using System.Linq;
 
 namespace Features.LogicGates
 {
+	[Serializable]
 	public class Network
 	{
-		private readonly GateInput[] _inputs;
-		private readonly GateOutput[] _outputs;
+		[SerializeField]
+		private GateInput[] _inputs;
+		[SerializeField]
+		private GateOutput[] _outputs;
 
 		public GateInput[] Inputs { get => _inputs; init => _inputs = value; }
 		public GateOutput[] Outputs { get => _outputs; init => _outputs = value; }
@@ -102,42 +105,43 @@ namespace Features.LogicGates
 
 		private static IEnumerable<Network> GetNetworks(IEnumerable<Connection> connections)
 		{
-			var explored = new HashSet<GateConnector>();
-			var unexplored = connections.ToList();
+			var explored = new HashSet<int>();
+			var remaining = connections.ToList();
 			var toExplore = new Queue<GateConnector>(capacity: 1);
+			var inputs = new List<GateInput>();
+			var outputs = new List<GateOutput>();
 
-			while (unexplored.Count > 0)
+			while (remaining.Count > 0)
 			{
-				toExplore.Enqueue(unexplored[0].ItemA);
-				var network = createNetwork();
-				yield return new Network() {
-					Inputs = network.OfType<GateInput>().ToArray(),
-					Outputs = network.OfType<GateOutput>().ToArray(),
-				};
-			}
-
-			IEnumerable<GateConnector> createNetwork()
-			{
+				toExplore.Enqueue(remaining[0].ItemA);
 				while (toExplore.TryDequeue(out var node))
 				{
-					if (node == null || explored.Contains(node))
+					if (node == null || explored.Contains(node.Id))
 						continue;
-					explored.Add(node);
-					yield return node;
+					explored.Add(node.Id);
+					if (node is GateInput input)
+						inputs.Add(input);
+					else if (node is GateOutput output)
+						outputs.Add(output);
 
-					for (int i = unexplored.Count - 1; i >= 0; i--)
+					for (int i = remaining.Count - 1; i >= 0; i--)
 					{
-						if (!unexplored[i].Contains(node))
+						if (!remaining[i].Contains(node))
 							continue;
-						var next = unexplored[i].Other(node);
-						if (next == null || explored.Contains(next))
+						var next = remaining[i].Other(node);
+						if (next == null || explored.Contains(next.Id))
 							continue;
 
 						toExplore.Enqueue(next);
-						unexplored.RemoveAt(i);
+						remaining.RemoveAt(i);
 					}
 				}
+
+				yield return new Network() { Inputs = inputs.ToArray(), Outputs = outputs.ToArray() };
+				inputs.Clear();
+				outputs.Clear();
 			}
+			yield break;
 		}
 	}
 }

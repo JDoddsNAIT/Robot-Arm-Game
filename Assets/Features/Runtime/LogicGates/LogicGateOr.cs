@@ -1,3 +1,4 @@
+
 namespace Features.LogicGates
 {
 	public class LogicGateOr : LogicGate
@@ -8,7 +9,7 @@ namespace Features.LogicGates
 		protected override IReadOnlyList<GateInput> Inputs => _inputs;
 		protected override IReadOnlyList<GateOutput> Outputs => _outputs;
 
-		protected override void ProcessInputs(float[] input, float[] output)
+		protected override void ProcessInputs(ReadOnlySpan<float> input, Span<float> output)
 		{
 			float value = 0;
 			for (int i = 0; i < input.Length; i++)

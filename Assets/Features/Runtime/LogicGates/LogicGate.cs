@@ -1,3 +1,4 @@
+
 namespace Features.LogicGates
 {
 	public abstract class LogicGate : MonoBehaviour
@@ -17,12 +18,14 @@ namespace Features.LogicGates
 		protected virtual void Start()
 		{
 			Simulation = GetComponentInParent<Simulation>();
-			Simulation.AddToSimulation(this);
+			if (Simulation != null)
+				Simulation.AddToSimulation(this);
 		}
 
 		protected virtual void OnDestroy()
 		{
-			Simulation.RemoveFromSimulation(this);
+			if (Simulation != null)
+				Simulation.RemoveFromSimulation(this);
 		}
 
 		public virtual void OnSimulationStart()
@@ -32,14 +35,6 @@ namespace Features.LogicGates
 			_bufferIndex = 0;
 			_bufferSize = Buffer + 1;
 			_outputValueBuffer = new float[_bufferSize, Outputs.Count];
-		}
-
-		public virtual void SetOutputValues()
-		{
-			for (int i = 0; i < Outputs.Count; i++)
-			{
-				Outputs[i].Value = _outputValueBuffer[_bufferIndex, i];
-			}
 		}
 
 		public virtual void OnSimulationUpdate()
@@ -53,11 +48,12 @@ namespace Features.LogicGates
 
 			for (int i = 0; i < Outputs.Count; i++)
 			{
+				Outputs[i].Value = _outputValueBuffer[_bufferIndex, i];
 				_outputValueBuffer[_bufferIndex, i] = _outputValues[i];
 			}
 			_bufferIndex = (_bufferIndex + 1) % _bufferSize;
 		}
 
-		protected abstract void ProcessInputs(float[] input, float[] output);
+		protected abstract void ProcessInputs(ReadOnlySpan<float> input, Span<float> output);
 	}
 }
