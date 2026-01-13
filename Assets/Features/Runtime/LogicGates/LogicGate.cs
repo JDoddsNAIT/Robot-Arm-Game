@@ -1,6 +1,6 @@
 namespace Features.LogicGates
 {
-	public abstract class BaseLogicGate : MonoBehaviour
+	public abstract class LogicGate : MonoBehaviour
 	{
 		private float[] _inputValues;
 		private float[] _outputValues;
@@ -9,17 +9,20 @@ namespace Features.LogicGates
 		private int _bufferSize;
 
 		protected virtual int BufferSize => 0;
-		protected abstract IReadOnlyList<Input> Inputs { get; }
-		protected abstract IReadOnlyList<Output> Outputs { get; }
+		protected abstract IReadOnlyList<GateInput> Inputs { get; }
+		protected abstract IReadOnlyList<GateOutput> Outputs { get; }
 
-		protected virtual void OnEnable()
+		public Simulation Simulation { get; private set; }
+
+		protected virtual void Start()
 		{
-			GetComponentInParent<LogicSimulator>().AddToSimulation(this);
+			Simulation = GetComponentInParent<Simulation>();
+			Simulation.AddToSimulation(this);
 		}
 
-		protected virtual void OnDisable()
+		protected virtual void OnDestroy()
 		{
-			GetComponentInParent<LogicSimulator>().RemoveFromSimulation(this);
+			Simulation.RemoveFromSimulation(this);
 		}
 
 		public virtual void OnSimulationStart()

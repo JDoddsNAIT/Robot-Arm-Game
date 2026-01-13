@@ -3,13 +3,13 @@ using UnityEngine;
 
 namespace Features.LogicGates
 {
-	public class AndGate : BaseLogicGate
+	public class LogicGateAnd : LogicGate
 	{
-		[SerializeField] private Input[] _inputs;
-		[SerializeField] private Output[] _outputs;
+		[SerializeField] private GateInput[] _inputs;
+		[SerializeField] private GateOutput[] _outputs;
 
-		protected override IReadOnlyList<Input> Inputs => _inputs;
-		protected override IReadOnlyList<Output> Outputs => _outputs;
+		protected override IReadOnlyList<GateInput> Inputs => _inputs;
+		protected override IReadOnlyList<GateOutput> Outputs => _outputs;
 
 		protected override void ProcessInputs(float[] input, float[] output)
 		{

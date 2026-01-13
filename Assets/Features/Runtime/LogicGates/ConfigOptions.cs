@@ -1,7 +1,5 @@
 namespace Features.LogicGates
 {
-	public abstract partial class Connectable
-	{
 		[Serializable]
 		public struct ConfigOptions
 		{
@@ -26,5 +24,4 @@ namespace Features.LogicGates
 				return value;
 			}
 		}
-	}
 }

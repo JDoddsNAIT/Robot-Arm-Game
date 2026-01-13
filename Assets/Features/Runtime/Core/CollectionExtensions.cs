@@ -33,5 +33,19 @@ namespace Features
 				i++;
 			}
 		}
+
+		public static T Clone<T, TElement>(this T collection)
+			where T : ICollection<TElement>, new()
+		{
+			var result = new T();
+			foreach (var item in collection)
+			{
+				result.Add(item);
+			}
+			return result;
+		}
+
+		public static List<TElement> Clone<TElement>(this List<TElement> elements)
+			=> Clone<List<TElement>, TElement>(elements);
 	}
 }
