@@ -86,6 +86,8 @@ namespace Features
 			return args;
 		}
 
+		public static bool IsAssignableTo(this Type t, Type type) => type.IsAssignableFrom(t);
+
 		public static bool IsNull<T>(this T? value) => value switch {
 			null => true,
 			Object obj when obj == null => true,
@@ -93,19 +95,5 @@ namespace Features
 		};
 
 		public static bool NotNull<T>(this T? value) => !IsNull(value);
-
-		public static int FastCount<T>(this IEnumerable<T> values)
-			=> values is IReadOnlyCollection<T> collection ? collection.Count : values.Count();
-
-		public static void EnsureCapacity<T>(this List<T> list, int capacity)
-			=> list.Capacity = Mathf.Max(list.Capacity, capacity);
-
-		public static bool IsAssignableTo(this Type t, Type type) => type.IsAssignableFrom(t);
-
-		public static void AddRange<T>(this ICollection<T> collection, IEnumerable<T> items)
-		{
-			foreach (var item in items)
-				collection.Add(item);
-		}
 	}
 }

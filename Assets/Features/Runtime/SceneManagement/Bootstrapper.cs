@@ -12,5 +12,12 @@ namespace Features.SceneManagement
 			Debug.Log("Starting bootstrapper...");
 			await SceneManager.LoadSceneAsync(SCENE_NAME, LoadSceneMode.Single);
 		}
+
+		public static Bootstrapper Main { get; private set; }
+
+		private void Awake()
+		{
+			Main = this;
+		}
 	}
 }

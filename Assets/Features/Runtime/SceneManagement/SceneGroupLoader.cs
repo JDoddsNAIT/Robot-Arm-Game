@@ -29,6 +29,9 @@ namespace Features.SceneManagement
 
 		public async Task LoadScenesAsync(SceneGroup group, IProgress<float> progress, bool reloadScenes = false)
 		{
+			ThrowHelper.IfNull(group, nameof(group));
+			ThrowHelper.IfNull(progress, nameof(progress));
+
 			if (_activeGroup != null)
 				await UnloadScenesAsync(_activeGroup, group.Select(static d => d.Name));
 
@@ -43,7 +46,7 @@ namespace Features.SceneManagement
 
 			for (int i = 0; i < loadGroups.Length; i++)
 			{
-				operationGroup.Operations.Clear();
+				operationGroup.Clear();
 
 				Debug.Log("Loading scenes: " + string.Join(", ", loadGroups[i]));
 
@@ -54,7 +57,7 @@ namespace Features.SceneManagement
 
 					OnSceneLoaded?.Invoke(data.Name);
 					var operation = SceneManager.LoadSceneAsync(data.Scene.Path, LoadSceneMode.Additive);
-					operationGroup.Operations.Add(operation);
+					operationGroup.Add(operation);
 				}
 
 				float offset = (float)i / loadGroups.Length;
@@ -65,19 +68,12 @@ namespace Features.SceneManagement
 				}
 			}
 
-			try
+			var activeSceneName = _activeGroup.FindSceneNameByType(SceneType.ActiveScene);
+			if (!string.IsNullOrEmpty(activeSceneName))
 			{
-				var activeSceneName = _activeGroup.FindSceneNameByType(SceneType.ActiveScene);
-				if (!string.IsNullOrEmpty(activeSceneName))
-				{
-					var activeScene = SceneManager.GetSceneByName(activeSceneName);
-					if (activeScene.IsValid())
-						SceneManager.SetActiveScene(activeScene);
-				}
-			}
-			catch
-			{ 
-				throw;
+				var activeScene = SceneManager.GetSceneByName(activeSceneName);
+				if (activeScene.IsValid())
+					SceneManager.SetActiveScene(activeScene);
 			}
 
 			OnSceneGroupLoaded?.Invoke(group.name);
@@ -85,13 +81,15 @@ namespace Features.SceneManagement
 
 		public async Task UnloadScenesAsync(SceneGroup group, IEnumerable<string> persistentScenes = null)
 		{
+			ThrowHelper.IfNull(group, nameof(group));
+
 			var persistentScenesSet = new HashSet<string>(persistentScenes ?? Enumerable.Empty<string>());
 			var unloadGroups = group.GetLoadGroups();
 			var operationGroup = new AsyncOperationGroup();
 
 			for (int i = unloadGroups.Length - 1; i >= 0; i--)
 			{
-				operationGroup.Operations.Clear();
+				operationGroup.Clear();
 
 				Debug.Log("Unloading scenes: " + string.Join(", ", unloadGroups[i]));
 				foreach (var data in unloadGroups[i])
@@ -101,7 +99,7 @@ namespace Features.SceneManagement
 
 					OnSceneUnloaded?.Invoke(data.Name);
 					var operation = SceneManager.UnloadSceneAsync(data.Scene.Path);
-					operationGroup.Operations.Add(operation);
+					operationGroup.Add(operation);
 				}
 
 				while (!operationGroup.IsDone)
@@ -113,15 +111,5 @@ namespace Features.SceneManagement
 			if (UnloadAssets)
 				await Resources.UnloadUnusedAssets();
 		}
-	}
-
-	public readonly struct AsyncOperationGroup
-	{
-		public float Progress => Operations.Count == 0 ? 0 : Operations.Average(static o => o.progress);
-		public bool IsDone => Operations.All(static o => o.isDone);
-		public List<AsyncOperation> Operations { get; }
-
-		public AsyncOperationGroup() : this(0) { }
-		public AsyncOperationGroup(int capacity) => Operations = new List<AsyncOperation>(capacity);
 	}
 }

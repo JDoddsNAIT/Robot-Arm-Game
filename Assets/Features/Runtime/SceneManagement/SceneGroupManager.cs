@@ -7,23 +7,39 @@ namespace Features.SceneManagement
 {
 	public class SceneGroupManager : MonoBehaviour
 	{
+		/// <summary>
+		/// The most recently created instance of <see cref="SceneGroupManager"/>.
+		/// </summary>
+		public static SceneGroupManager Main { get; private set; }
+
 		[SerializeField] private Image _loadingProgressBar;
 		[SerializeField] private float _fillSpeed = 0.5f;
 		[SerializeField] private Canvas _loadingCanvas;
 		[SerializeField] private Camera _loadingCamera;
 		[Space]
-		[Tooltip("The scene group to load at startup.")]
-		[SerializeField] private SceneGroup _initialGroup;
 		[Tooltip("List of scenes that will always remain loaded.")]
 		[SerializeField] private SceneReference[] _persistentScenes = Array.Empty<SceneReference>();
+		[Tooltip("The scene group to load at startup.")]
+		[SerializeField] private SceneGroup _initialGroup;
 		[Tooltip("List of scene groups that can be indexed through this object.")]
 		[SerializeField] private SceneGroup[] _sceneGroups = new SceneGroup[1];
 
-		private SceneGroupLoader _loader;
+		private readonly SceneGroupLoader _loader = new();
 		private float _targetProgress;
 		private bool _isLoading;
 
-		public SceneGroupLoader GroupLoader => _loader;
+		public event SceneGroupLoader.EventHandler OnSceneLoaded {
+			add => _loader.OnSceneLoaded += value;
+			remove => _loader.OnSceneLoaded -= value;
+		}
+		public event SceneGroupLoader.EventHandler OnSceneUnloaded {
+			add => _loader.OnSceneUnloaded += value;
+			remove => _loader.OnSceneUnloaded -= value;
+		}
+		public event SceneGroupLoader.EventHandler OnSceneGroupLoaded {
+			add => _loader.OnSceneGroupLoaded += value;
+			remove => _loader.OnSceneGroupLoaded -= value;
+		}
 
 		private float FillAmount {
 			get => _loadingProgressBar != null ? _loadingProgressBar.fillAmount : 0;
@@ -32,10 +48,11 @@ namespace Features.SceneManagement
 
 		public void Awake()
 		{
-			_loader = new(_persistentScenes);
-			_loader.OnSceneLoaded += name => Debug.Log($"Loading scene {name}");
-			_loader.OnSceneUnloaded += name => Debug.Log($"Unloading scene {name}");
-			_loader.OnSceneGroupLoaded += name => Debug.Log($"Loaded group {name}");
+			Main = this;
+			foreach (var scene in _persistentScenes)
+			{
+				_loader.AddPersistentScene(scene.Name);
+			}
 		}
 
 		private async void Start()

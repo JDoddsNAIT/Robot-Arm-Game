@@ -33,7 +33,7 @@ namespace Features.SceneManagement
 		public int Count => _scenes.Count;
 		public SceneData this[int index] { get => _scenes[index]; set => _scenes[index] = value; }
 
-		bool ICollection<SceneData>.IsReadOnly => ((ICollection<SceneData>)_scenes).IsReadOnly;
+		bool ICollection<SceneData>.IsReadOnly => (_scenes as ICollection<SceneData>).IsReadOnly;
 
 		public int IndexOf(SceneData item) => _scenes.IndexOf(item);
 		public bool Contains(SceneData item) => _scenes.Contains(item);
@@ -50,12 +50,9 @@ namespace Features.SceneManagement
 			=> _scenes.FirstOrDefault(s => s.Type == sceneType).Scene.Name;
 
 		public IGrouping<int, SceneData>[] GetLoadGroups(bool descending = false)
-		{
-			static int loadOrder(SceneData data) => data.LoadOrder;
-			return _scenes.OrderBy(loadOrder).GroupBy(loadOrder).ToArray();
-		}
+			=> _scenes.OrderBy(static sg => sg.LoadOrder).GroupBy(static sg => sg.LoadOrder).ToArray();
 
 		public IEnumerator<SceneData> GetEnumerator() => _scenes.GetEnumerator();
-		IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)_scenes).GetEnumerator();
+		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 	}
 }
