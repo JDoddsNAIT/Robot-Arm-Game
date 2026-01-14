@@ -30,12 +30,28 @@ namespace Features.LogicGates
 
 	public class Simulation : MonoBehaviour
 	{
-		private bool _started;
-		private bool _running;
 		private Network[] _networks;
+		private bool _running;
 
 		[SerializeField] private List<Connection> _connections = new();
 		[SerializeField] private List<LogicGate> _gates = new();
+		[Space]
+		[SerializeField] private UnityEvent _onSimulationStart = new();
+		[SerializeField] private UnityEvent _onSimulationUpdate = new();
+		[SerializeField] private UnityEvent _onSimulationStop = new();
+
+		public event UnityAction OnSimulationStart {
+			add => _onSimulationStart.AddListener(value);
+			remove => _onSimulationStart.RemoveListener(value);
+		}
+		public event UnityAction OnSimulationUpdate {
+			add => _onSimulationUpdate.AddListener(value);
+			remove => _onSimulationUpdate.RemoveListener(value);
+		}
+		public event UnityAction OnSimulationStop {
+			add => _onSimulationStop.AddListener(value);
+			remove => _onSimulationStop.RemoveListener(value);
+		}
 
 		public void AddToSimulation(Connection connection)
 		{
@@ -50,12 +66,12 @@ namespace Features.LogicGates
 			if (!_gates.Contains(gate))
 				_gates.Add(gate);
 		}
-
 		public void RemoveFromSimulation(LogicGate gate) => _gates.Remove(gate);
 
 		[ContextMenu(nameof(StartSimulation))]
 		public void StartSimulation()
 		{
+			_onSimulationStart.Invoke();
 			_networks = GetNetworks(_connections).ToArray();
 
 			for (int i = 0; i < _gates.Count; i++)
@@ -63,7 +79,6 @@ namespace Features.LogicGates
 				_gates[i].OnSimulationStart();
 			}
 
-			_started = true;
 			PauseSimulation();
 		}
 
@@ -72,14 +87,22 @@ namespace Features.LogicGates
 			if (!_running || !enabled)
 				return;
 
-			for (int n = 0; n < _networks.Length; n++)
+			try
 			{
-				_networks[n].Update();
-			}
+				for (int n = 0; n < _networks.Length; n++)
+				{
+					_networks[n].Update();
+				}
 
-			for (int g = 0; g < _gates.Count; g++)
+				for (int g = 0; g < _gates.Count; g++)
+				{
+					_gates[g].OnSimulationUpdate();
+				}
+			}
+			catch (Exception ex)
 			{
-				_gates[g].OnSimulationUpdate();
+				StopSimulation();
+				Debug.LogException(new InvalidOperationException("An error has occurred during the simulation, simulation has been stopped.", ex));
 			}
 		}
 
@@ -88,7 +111,7 @@ namespace Features.LogicGates
 
 		public void PauseSimulation(bool? state = null)
 		{
-			if (!_started) return;
+			if (_networks is null) return;
 			_running = state switch {
 				null => !_running,
 				false => false,
@@ -99,8 +122,17 @@ namespace Features.LogicGates
 		[ContextMenu(nameof(StopSimulation))]
 		public void StopSimulation()
 		{
-			_started = false;
+			_networks = null;
 			_running = false;
+			_onSimulationStop.Invoke();
+		}
+
+		public void StartStopSimulation()
+		{
+			if (_networks is null)
+				StartSimulation();
+			else
+				StopSimulation();
 		}
 
 		private static IEnumerable<Network> GetNetworks(IEnumerable<Connection> connections)

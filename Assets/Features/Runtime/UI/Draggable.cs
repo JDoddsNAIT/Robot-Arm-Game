@@ -5,6 +5,8 @@ namespace Features.UI
 	[RequireComponent(typeof(RectTransform))]
 	public class Draggable : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 	{
+		public static List<DropArea> dropAreas = new();
+
 		private Vector2 _offset;
 
 		[SerializeField] private RectTransform _target;
@@ -37,6 +39,14 @@ namespace Features.UI
 
 		void IEndDragHandler.OnEndDrag(PointerEventData eventData)
 		{
+			var corners = new Vector3[4];
+			foreach (var area in dropAreas)
+			{
+				if (area.Drop(Target.gameObject, Target.position, corners))
+				{
+					break;
+				}
+			}
 			_onEndDrag.Invoke(eventData.position);
 		}
 	}

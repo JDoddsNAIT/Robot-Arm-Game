@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 4955527571878613539}
   - component: {fileID: 2055886757708036906}
   - component: {fileID: 8872282894931579012}
+  - component: {fileID: 2950797947247414956}
   - component: {fileID: 4062131341161365092}
   m_Layer: 5
   m_Name: Lamp Gate
@@ -77,6 +78,25 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &2950797947247414956
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5156035577860626352}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b352eb3cb1594eb4496c13c18cf4261d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: features.runtime::Features.UI.Draggable
+  _target: {fileID: 4955527571878613539}
+  _onStartDrag:
+    m_PersistentCalls:
+      m_Calls: []
+  _onEndDrag:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &4062131341161365092
 MonoBehaviour:
   m_ObjectHideFlags: 0

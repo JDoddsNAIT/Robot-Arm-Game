@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 2227869399910677580}
   - component: {fileID: 7184303386758410095}
   - component: {fileID: 8585657928632443345}
+  - component: {fileID: 8521559063269969374}
   - component: {fileID: 5177524660710792124}
   - component: {fileID: 5352395962384596085}
   m_Layer: 5
@@ -78,6 +79,25 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &8521559063269969374
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7150417134890682066}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b352eb3cb1594eb4496c13c18cf4261d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: features.runtime::Features.UI.Draggable
+  _target: {fileID: 2227869399910677580}
+  _onStartDrag:
+    m_PersistentCalls:
+      m_Calls: []
+  _onEndDrag:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &5177524660710792124
 MonoBehaviour:
   m_ObjectHideFlags: 0

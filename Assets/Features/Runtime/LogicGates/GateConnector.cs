@@ -15,6 +15,11 @@ namespace Features.LogicGates
 			_simulation = transform.parent.GetComponentInParent<Simulation>();
 		}
 
+		protected virtual void OnDestroy()
+		{
+
+		}
+
 		public virtual void OnClick() => Select(this);
 
 		public void Connect(GateConnector other)

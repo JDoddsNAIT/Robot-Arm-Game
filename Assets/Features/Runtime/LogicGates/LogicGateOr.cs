@@ -1,7 +1,7 @@
 
 namespace Features.LogicGates
 {
-	public class LogicGateOr : LogicGate
+	public class LogicGateOR : LogicGate
 	{
 		[SerializeField] private GateInput[] _inputs;
 		[SerializeField] private GateOutput[] _outputs;
