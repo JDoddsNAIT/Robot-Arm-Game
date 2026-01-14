@@ -1,4 +1,5 @@
 using System.Linq;
+using Features.Persistence;
 
 namespace Features.LogicGates
 {
@@ -28,17 +29,22 @@ namespace Features.LogicGates
 		}
 	}
 
-	public class Simulation : MonoBehaviour
+	public class Simulation : MonoBehaviour, IDataOwner<SimulationData>
 	{
 		private Network[] _networks;
 		private bool _running;
 
+		[SerializeField] private SerializableGuid _levelId = SerializableGuid.NewGuid();
+		[Space]
 		[SerializeField] private List<Connection> _connections = new();
 		[SerializeField] private List<LogicGate> _gates = new();
 		[Space]
 		[SerializeField] private UnityEvent _onSimulationStart = new();
 		[SerializeField] private UnityEvent _onSimulationUpdate = new();
 		[SerializeField] private UnityEvent _onSimulationStop = new();
+
+		public SerializableGuid Id => _levelId;
+		public SimulationData Data => this.GetSimulationData();
 
 		public event UnityAction OnSimulationStart {
 			add => _onSimulationStart.AddListener(value);
@@ -79,30 +85,32 @@ namespace Features.LogicGates
 				_gates[i].OnSimulationStart();
 			}
 
-			PauseSimulation();
+			PauseSimulation(state: true);
 		}
 
 		public void Update()
 		{
 			if (!_running || !enabled)
 				return;
+			Tick();
+		}
 
-			try
+		/// <summary>
+		/// Advances the simulation by one.
+		/// </summary>
+		public void Tick()
+		{
+			if (_networks is null)
+				throw new InvalidOperationException("Cannot tick a simulation that has not been started.");
+
+			for (int n = 0; n < _networks.Length; n++)
 			{
-				for (int n = 0; n < _networks.Length; n++)
-				{
-					_networks[n].Update();
-				}
-
-				for (int g = 0; g < _gates.Count; g++)
-				{
-					_gates[g].OnSimulationUpdate();
-				}
+				_networks[n].Update();
 			}
-			catch (Exception ex)
+
+			for (int g = 0; g < _gates.Count; g++)
 			{
-				StopSimulation();
-				Debug.LogException(new InvalidOperationException("An error has occurred during the simulation, simulation has been stopped.", ex));
+				_gates[g].OnSimulationUpdate();
 			}
 		}
 
@@ -174,6 +182,94 @@ namespace Features.LogicGates
 				outputs.Clear();
 			}
 			yield break;
+		}
+
+		public void Bind(in SimulationData data)
+		{
+			for (int i = 0; i < data.LogicGates.Length; i++)
+			{
+				var gateData = data.LogicGates[i];
+
+				var clone = Instantiate(gateData.prefab, transform);
+				clone.transform.position = gateData.position;
+				var gate = clone.GetComponent<LogicGate>();
+				Assert.NotNull(gate);
+
+				var length = Mathf.Min(gate.Inputs.Count, gateData.inputData.Length);
+				for (int c = 0; c < length; c++)
+					gate.Inputs[c].SetConnectorData(gateData.inputData[c]);
+
+				length = Mathf.Min(gate.Outputs.Count, gateData.outputData.Length);
+				for (int c = 0; c < length; c++)
+					gate.Outputs[c].SetConnectorData(gateData.outputData[c]);
+
+				gate.SetConfigData(gateData.configData);
+
+				_gates.Add(gate);
+			}
+
+			for (int i = 0; i < data.Connections.Length; i++)
+			{
+				_connections.Add(data.Connections[i].GetConnection(_gates));
+			}
+		}
+
+		private SimulationData GetSimulationData()
+		{
+			var gateData = new LogicGateData[_gates.Count];
+			var connectionData = new ConnectionData[_connections.Count];
+
+			for (int gateId = 0; gateId < _gates.Count; gateId++)
+			{
+				var gate = _gates[gateId];
+
+				gateData[gateId] = new LogicGateData() {
+					gateId = gateId,
+					prefab = gate.Prefab,
+					// LogicGate component is expected to be a direct child of the simulation.
+					position = gate.transform.localPosition,
+					configData = gate.GetConfigData(),
+					inputData = getConnectorData(gateId, gate.Inputs, ConnectionPointData.PointType.Input),
+					outputData = getConnectorData(gateId, gate.Outputs, ConnectionPointData.PointType.Output),
+				};
+			}
+
+			return new SimulationData() {
+				LevelId = _levelId,
+				LogicGates = gateData,
+				Connections = connectionData,
+			};
+
+			ConnectorData[] getConnectorData(int gateId, IReadOnlyList<GateConnector> points, ConnectionPointData.PointType pointType)
+			{
+				var result = new ConnectorData[points.Count];
+				for (int pointId = 0; pointId < points.Count; pointId++)
+				{
+					result[pointId] = points[pointId].GetConnectorData();
+					var point = points[pointId];
+					for (int c = 0; c < _connections.Count; c++)
+					{
+						connectionData[c] ??= new();
+						var data = new ConnectionPointData() {
+							gateId = gateId,
+							pointId = pointId,
+							pointType = pointType
+						};
+
+						if (_connections[c].ItemA.Equals(point))
+							connectionData[c].pointA = data;
+						else if (_connections[c].ItemB.Equals(point))
+							connectionData[c].pointB = data;
+					}
+				}
+				return result;
+			}
+		}
+
+		public void Unbind()
+		{
+			_connections.Clear();
+			_gates.Clear();
 		}
 	}
 }

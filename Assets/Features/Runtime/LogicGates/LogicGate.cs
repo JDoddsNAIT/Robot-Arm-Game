@@ -1,4 +1,3 @@
-
 namespace Features.LogicGates
 {
 	public abstract class LogicGate : MonoBehaviour
@@ -10,10 +9,21 @@ namespace Features.LogicGates
 		private int _bufferSize;
 
 		protected virtual int Buffer => 0;
-		protected abstract IReadOnlyList<GateInput> Inputs { get; }
-		protected abstract IReadOnlyList<GateOutput> Outputs { get; }
+
+		public abstract GameObject Prefab { get; set; }
+		public abstract IReadOnlyList<GateInput> Inputs { get; }
+		public abstract IReadOnlyList<GateOutput> Outputs { get; }
+
+		public IReadOnlyList<GateConnector> this[ConnectionPointData.PointType type] => type switch {
+			ConnectionPointData.PointType.Input => Inputs,
+			ConnectionPointData.PointType.Output => Outputs,
+			_ => throw new NotImplementedException(),
+		};
 
 		public Simulation Simulation { get; private set; }
+
+		public abstract GateConfigData[] GetConfigData();
+		public abstract void SetConfigData(GateConfigData[] value);
 
 		protected virtual void Start()
 		{

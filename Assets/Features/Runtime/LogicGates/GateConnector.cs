@@ -1,4 +1,3 @@
-
 namespace Features.LogicGates
 {
 	public abstract partial class GateConnector : MonoBehaviour,
@@ -10,14 +9,12 @@ namespace Features.LogicGates
 		public int Id => _id;
 		public abstract float Value { get; set; }
 
+		public abstract ConnectorData GetConnectorData();
+		public abstract void SetConnectorData(ConnectorData value);
+
 		protected virtual void Start()
 		{
 			_simulation = transform.parent.GetComponentInParent<Simulation>();
-		}
-
-		protected virtual void OnDestroy()
-		{
-
 		}
 
 		public virtual void OnClick() => Select(this);
