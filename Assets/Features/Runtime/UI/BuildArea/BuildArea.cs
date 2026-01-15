@@ -32,7 +32,6 @@ namespace Features.UI
 				if (parent == null)
 					parent = transform;
 				var clone = Instantiate(_nodePrefab, parent);
-				clone.transform.localPosition = node.position;
 				_nodes.Add(node.gateId, clone.GetComponent<LogicNodeUI>());
 			}
 			_nodes[node.gateId].Bind(node);
