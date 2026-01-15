@@ -39,15 +39,36 @@ namespace Features.UI
 
 		void IEndDragHandler.OnEndDrag(PointerEventData eventData)
 		{
-			var corners = new Vector3[4];
-			foreach (var area in dropAreas)
+			if (dropAreas.Count > 0)
 			{
-				if (area.Drop(Target.gameObject, Target.position, corners))
+				var corners = new Vector3[4];
+				Target.GetWorldCorners(corners);
+				var rect = GetRectFromFourCornersArray(corners);
+
+				var areaCorners = new Vector3[4];
+				foreach (var area in dropAreas)
 				{
-					break;
+					area.RectTransform.GetWorldCorners(areaCorners);
+					var areaRect = GetRectFromFourCornersArray(areaCorners);
+					if (areaRect.Overlaps(rect))
+					{
+						area.DropObj(Target.gameObject);
+						break;
+					}
 				}
 			}
 			_onEndDrag.Invoke(eventData.position);
+		}
+
+		private static Rect GetRectFromFourCornersArray(Vector3[] corners)
+		{
+			var min = corners[0];
+			for (int i = 1; i < corners.Length; i++)
+				min = Vector3.Min(min, corners[i]);
+			var max = corners[0];
+			for (int i = 1; i < corners.Length; i++)
+				max = Vector3.Max(max, corners[i]);
+			return Rect.MinMaxRect(min.x, min.y, max.x, max.y);
 		}
 	}
 }

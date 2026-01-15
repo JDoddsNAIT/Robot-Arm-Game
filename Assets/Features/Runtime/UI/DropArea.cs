@@ -14,6 +14,8 @@ namespace Features.UI
 			remove => _onDraggableDropped.RemoveListener(value);
 		}
 
+		public RectTransform RectTransform => _rectTransform;
+
 		public void Awake()
 		{
 			_rectTransform = transform as RectTransform;
@@ -29,20 +31,9 @@ namespace Features.UI
 			Draggable.dropAreas.Remove(this);
 		}
 
-		public bool Drop(GameObject obj, Vector2 position, Vector3[] cornersArray)
+		public void DropObj(GameObject obj)
 		{
-			_rectTransform.GetWorldCorners(cornersArray);
-			var rect = new Rect(cornersArray[1], cornersArray[3] - cornersArray[1]);
-
-			if (rect.Contains(position))
-			{
-				_onDraggableDropped.Invoke(obj);
-				return true;
-			}
-			else
-			{
-				return false;
-			}
+			_onDraggableDropped.Invoke(obj);
 		}
 	}
 }
