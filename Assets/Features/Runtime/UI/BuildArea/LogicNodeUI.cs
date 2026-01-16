@@ -1,9 +1,10 @@
 using System.Linq;
+using Features.LogicGates;
 using Features.Persistence;
 
 namespace Features.UI
 {
-	public abstract class LogicNodeUI : MonoBehaviour, IDataOwner<LogicNodeData>
+	public abstract class LogicNodeUI : MonoBehaviour, IDataOwner<LogicData>
 	{
 		bool _bound = false;
 
@@ -17,20 +18,20 @@ namespace Features.UI
 		[SerializeField] private List<LogicNodeConnector> _outputs;
 
 		public SerializableGuid Id { get => _gateId; set => _gateId = value; }
-		public LogicNodeData Data => !_bound ? null : new LogicNodeData() {
+		public LogicData Data => !_bound ? null : new LogicData() {
 			gateId = _gateId,
 			position = transform.localPosition,
 			type = this.GateType,
 			name = this.name,
 			configOptions = this.GetConfigValues()
-				.Select(x => new LogicNodeData.ConfigOption() { name = x.Key, value = x.Value })
+				.Select(x => new LogicData.ConfigOption() { name = x.Key, value = x.Value })
 				.ToArray(),
 			inputCount = _inputs.Count,
 			outputCount = _outputs.Count,
 			connectors = _inputs.Select(GetData).Concat(_outputs.Select(GetData)).ToArray()
 		};
 
-		public void Bind(in LogicNodeData data)
+		public void Bind(in LogicData data)
 		{
 			gameObject.name = data.name;
 			transform.localPosition = data.position;
@@ -86,7 +87,7 @@ namespace Features.UI
 		protected abstract void BindConfig(IReadOnlyDictionary<string, string> config);
 		protected abstract IReadOnlyDictionary<string, string> GetConfigValues();
 
-		private static LogicNodeData.ConnectorData GetData(LogicNodeConnector x) => new() {
+		private static LogicData.ConnectorData GetData(LogicNodeConnector x) => new() {
 			index = x.Index,
 			invert = x.Invert,
 			scale = x.Scale,

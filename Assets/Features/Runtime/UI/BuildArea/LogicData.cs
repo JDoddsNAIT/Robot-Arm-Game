@@ -1,6 +1,6 @@
 using Features.Persistence;
 
-namespace Features.UI
+namespace Features.LogicGates
 {
 	public enum GateType
 	{
@@ -11,7 +11,7 @@ namespace Features.UI
 	}
 
 	[Serializable]
-	public class LogicNodeData : IData
+	public class LogicData : IData
 	{
 		public SerializableGuid gateId;
 		public Vector2 position;
