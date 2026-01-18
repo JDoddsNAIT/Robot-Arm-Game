@@ -4,21 +4,22 @@ using Features.UI;
 
 namespace Features.LogicGates
 {
-	public class Simulation
+	[Obsolete]
+	public class Simulation_Obsolete
 	{
-		private readonly Dictionary<SerializableGuid, LogicGate> _logicGates;
-		private readonly Network[] _networks;
+		private readonly Dictionary<SerializableGuid, LogicGate_Obsolete> _logicGates;
+		private readonly Network_Obsolete[] _networks;
 
-		public Simulation(IEnumerable<LogicData> nodes)
+		public Simulation_Obsolete(IEnumerable<LogicData> nodes)
 		{
-			var gates = new Dictionary<SerializableGuid, LogicGate>();
+			var gates = new Dictionary<SerializableGuid, LogicGate_Obsolete>();
 			var connections = new List<(LogicData.Connection a, LogicData.Connection b)>();
 
 			foreach (var data in nodes)
 			{
 
-				var inputs = new LogicConnector[data.inputCount];
-				var outputs = new LogicConnector[data.outputCount];
+				var inputs = new LogicConnector_Obsolete[data.inputCount];
+				var outputs = new LogicConnector_Obsolete[data.outputCount];
 
 				for (int c = 0; c < data.connectors.Length; c++)
 				{
@@ -31,8 +32,6 @@ namespace Features.LogicGates
 					{
 						outputs[~connector.index] = new(ConnectorType.Output, connector.invert, connector.scale);
 					}
-
-					var connection
 				}
 			}
 		}
@@ -63,13 +62,13 @@ namespace Features.LogicGates
 			}
 		}
 
-		private static IEnumerable<Network> GetNetworks(IEnumerable<Network.Connection> connections)
+		private static IEnumerable<Network_Obsolete> GetNetworks(IEnumerable<Network_Obsolete.Connection> connections)
 		{
 			var explored = new HashSet<uint>();
 			var remaining = connections.ToList();
-			var toExplore = new Queue<LogicConnector>(capacity: 1);
-			var inputs = new List<LogicConnector>();
-			var outputs = new List<LogicConnector>();
+			var toExplore = new Queue<LogicConnector_Obsolete>(capacity: 1);
+			var inputs = new List<LogicConnector_Obsolete>();
+			var outputs = new List<LogicConnector_Obsolete>();
 
 			while (remaining.Count > 0)
 			{
@@ -97,7 +96,7 @@ namespace Features.LogicGates
 					}
 				}
 
-				yield return new Network() { inputs = inputs.ToArray(), outputs = outputs.ToArray() };
+				yield return new Network_Obsolete() { inputs = inputs.ToArray(), outputs = outputs.ToArray() };
 				inputs.Clear();
 				outputs.Clear();
 			}
@@ -105,31 +104,31 @@ namespace Features.LogicGates
 		}
 	}
 
-	public class Network
+	public class Network_Obsolete
 	{
-		public LogicConnector[] inputs, outputs;
+		public LogicConnector_Obsolete[] inputs, outputs;
 
 		[Serializable]
 		public struct Connection : IEquatable<Connection>
 		{
-			[SerializeField] private LogicConnector _a, _b;
+			[SerializeField] private LogicConnector_Obsolete _a, _b;
 
-			public LogicConnector ItemA { readonly get => _a; init => _a = value; }
-			public LogicConnector ItemB { readonly get => _b; init => _b = value; }
+			public LogicConnector_Obsolete ItemA { readonly get => _a; init => _a = value; }
+			public LogicConnector_Obsolete ItemB { readonly get => _b; init => _b = value; }
 
-			public Connection(LogicConnector a, LogicConnector b)
+			public Connection(LogicConnector_Obsolete a, LogicConnector_Obsolete b)
 			{
 				_a = a; _b = b;
 			}
 
-			public readonly bool Contains(LogicConnector obj)
+			public readonly bool Contains(LogicConnector_Obsolete obj)
 			{
 				EnsurePointsNotNull();
 				ThrowHelper.IfNull(obj, nameof(obj));
 				return _a.Equals(obj) || _b.Equals(obj);
 			}
 
-			public readonly LogicConnector Other(LogicConnector obj)
+			public readonly LogicConnector_Obsolete Other(LogicConnector_Obsolete obj)
 			{
 				EnsurePointsNotNull();
 				ThrowHelper.IfNull(obj, nameof(obj));

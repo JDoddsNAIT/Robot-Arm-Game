@@ -38,36 +38,28 @@ namespace Features.UI
 			_nodes[node.gateId].Bind(node);
 		}
 
-		public Simulation GetSimulation()
+		public Simulation_Obsolete GetSimulation()
 		{
-			var logicGates = new Dictionary<SerializableGuid, LogicGate>(_nodes.Count);
+			var logicGates = new Dictionary<SerializableGuid, LogicGate_Obsolete>(_nodes.Count);
 			var connections = new List<IntermediateConnection>();
 			foreach (var node in _nodes.Values)
 			{
 				var data = node.Data;
 
-				var inputs = new LogicConnector[data.inputCount];
-				var outputs = new LogicConnector[data.outputCount];
+				var inputs = new LogicConnector_Obsolete[data.inputCount];
+				var outputs = new LogicConnector_Obsolete[data.outputCount];
 				foreach (var obj in data.connectors)
 				{
 					int index;
 					if (obj.index >= 0)
 					{
 						index = obj.index;
-						inputs[index] = new LogicConnector() {
-							Type = ConnectorType.Input,
-							Invert = obj.invert,
-							Scale = obj.scale,
-						};
+						inputs[index] = new LogicConnector_Obsolete(ConnectorType.Input, obj.invert, obj.scale);
 					}
 					else
 					{
 						index = ~obj.index;
-						outputs[index] = new LogicConnector() {
-							Type = ConnectorType.Output,
-							Invert = obj.invert,
-							Scale = obj.scale,
-						};
+						outputs[index] = new LogicConnector_Obsolete(ConnectorType.Output, obj.invert, obj.scale);
 					}
 
 					var start = new LogicData.Connection() { node = node.Id, index = obj.index };
@@ -79,11 +71,11 @@ namespace Features.UI
 					}
 				}
 
-				var gate = new LogicGate(node.GetBehaviour(), inputs, outputs);
+				var gate = new LogicGate_Obsolete(null, inputs, outputs);
 				logicGates.Add(node.Id, gate);
 			}
 
-			return new Simulation(logicGates.Values, connections.Select(c => c.ToConnection(logicGates)));
+			return null;
 		}
 	}
 
@@ -103,14 +95,6 @@ namespace Features.UI
 		public static implicit operator IntermediateConnection((LogicData.Connection a, LogicData.Connection b) value)
 		{
 			return new IntermediateConnection(value.a, value.b);
-		}
-
-		public readonly Connection ToConnection(IReadOnlyDictionary<SerializableGuid, LogicGate> gates)
-		{
-			LogicConnector getConnector(LogicData.Connection connection) => connection.index >= 0
-				? gates[connection.node].Inputs[connection.index]
-				: gates[connection.node].Outputs[~connection.index];
-			return new Connection(getConnector(A), getConnector(B));
 		}
 	}
 }
