@@ -37,46 +37,6 @@ namespace Features.UI
 			}
 			_nodes[node.gateId].Bind(node);
 		}
-
-		public Simulation_Obsolete GetSimulation()
-		{
-			var logicGates = new Dictionary<SerializableGuid, LogicGate_Obsolete>(_nodes.Count);
-			var connections = new List<IntermediateConnection>();
-			foreach (var node in _nodes.Values)
-			{
-				var data = node.Data;
-
-				var inputs = new LogicConnector_Obsolete[data.inputCount];
-				var outputs = new LogicConnector_Obsolete[data.outputCount];
-				foreach (var obj in data.connectors)
-				{
-					int index;
-					if (obj.index >= 0)
-					{
-						index = obj.index;
-						inputs[index] = new LogicConnector_Obsolete(ConnectorType.Input, obj.invert, obj.scale);
-					}
-					else
-					{
-						index = ~obj.index;
-						outputs[index] = new LogicConnector_Obsolete(ConnectorType.Output, obj.invert, obj.scale);
-					}
-
-					var start = new LogicData.Connection() { node = node.Id, index = obj.index };
-					foreach (var connected in obj.connections)
-					{
-						if (connections.Contains((start, connected)) || connections.Contains((connected, start)))
-							continue;
-						connections.Add((start, connected));
-					}
-				}
-
-				var gate = new LogicGate_Obsolete(null, inputs, outputs);
-				logicGates.Add(node.Id, gate);
-			}
-
-			return null;
-		}
 	}
 
 	[Serializable]
